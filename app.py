@@ -20,7 +20,7 @@ sched = BackgroundScheduler(daemon=True)
 #+++ End Connection +++
 
 def signal_by_ema(symbols):
-    klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "1200 minutes ago UTC")
+    klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_1MINUTE , "1200 minutes ago UTC")
     closes = [float(i[4]) for i in klines]
     closes = np.array(closes)
     if len(closes) > 0:
@@ -54,9 +54,8 @@ def job_scheduler():
     info = client.get_all_tickers()
     list_coin = [i['symbol'] for i in info]
     list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    #for coin in list_coin_usdt:
-        #signal_by_ema(coin)
-    signal_by_ema("CAKEUSDT")
+    for coin in list_coin_usdt:
+        signal_by_ema(coin)
     print("-------------------------------------------------")
 
 @app.route("/")
@@ -69,6 +68,12 @@ def hello_world():
     #signal_by_ema("CAKEUSDT")
     return "Hello world"
 
+@app.route("/check_binance")
+def check_binance():
+    #Test api binance
+    cake = client.get_asset_balance(asset='CAKE')
+    return "Binance CAKE : {}".format(cake)
+
 @app.route("/send_line")
 def send_line():
     #Test send line
@@ -77,15 +82,21 @@ def send_line():
 
 @app.route("/start_sched")    
 def start_sched():
-    sched.add_job(job_scheduler,'interval',minutes=1)
-    sched.start()
-    return "Scheduler is start"
-
+    try:
+        sched.add_job(job_scheduler,'interval',minutes=1)
+        sched.start()
+      return "Scheduler is start"
+    except:
+      return "Scheduler Start An exception occurred"
+   
 @app.route("/stop_sched")
 def stop_sched():
-    sched.shutdown()
-    return "Scheduler is stop"
-
+    try:
+        sched.shutdown()
+        return "Scheduler is stop"
+    except:
+        return "Scheduler stop An exception occurred"
+    
 if __name__ == "__main__":
     #app.run('127.0.0.1',port=5000)
     app.run(debug=False)
