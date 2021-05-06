@@ -20,7 +20,7 @@ sched = BackgroundScheduler(daemon=True)
 #+++ End Connection +++
 
 def signal_by_ema(symbols):
-    klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_1MINUTE , "1200 minutes ago UTC")
+    klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
     closes = [float(i[4]) for i in klines]
     closes = np.array(closes)
     if len(closes) > 0:
@@ -54,9 +54,9 @@ def job_scheduler():
     info = client.get_all_tickers()
     list_coin = [i['symbol'] for i in info]
     list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    #for coin in list_coin_usdt:
-        #signal_by_ema(coin)
-    signal_by_ema("CAKEUSDT")
+    for coin in list_coin_usdt:
+        signal_by_ema(coin)
+    #signal_by_ema("CAKEUSDT")
     print("-------------------------------------------------")
 
 @app.route("/")
@@ -84,7 +84,7 @@ def send_line():
 @app.route("/start_sched")    
 def start_sched():
     try:
-        sched.add_job(job_scheduler,'interval',minutes=1)
+        sched.add_job(job_scheduler,'interval',minutes=30)
         sched.start()
         return "Scheduler is start"
     except:
