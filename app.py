@@ -54,9 +54,9 @@ def job_scheduler():
     info = client.get_all_tickers()
     list_coin = [i['symbol'] for i in info]
     list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    for coin in list_coin_usdt:
-        signal_by_ema(coin)
-    #signal_by_ema("CAKEUSDT")
+    #for coin in list_coin_usdt:
+    #    signal_by_ema(coin)
+    signal_by_ema("CAKEUSDT")
     print("-------------------------------------------------")
 
 @app.route("/")
@@ -80,6 +80,13 @@ def send_line():
     #Test send line
     lineNoti.sendtext("Send Line Test : Hello world")
     return "Hello world"
+
+@app.route("/check_sched")
+def check_sched():
+    sched_job = ""
+    for job in sched.get_jobs():
+        sched_job = "Name : {} :: Triger: {} :: NextRunTime : {}".format(job.name, job.trigger, job.next_run_time)
+    return "Schedule Job : {}".format(sched_job)
 
 @app.route("/start_sched")    
 def start_sched():
