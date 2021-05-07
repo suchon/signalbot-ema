@@ -54,9 +54,9 @@ def job_scheduler():
     info = client.get_all_tickers()
     list_coin = [i['symbol'] for i in info]
     list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    #for coin in list_coin_usdt:
-    #    signal_by_ema(coin)
-    signal_by_ema("CAKEUSDT")
+    for coin in list_coin_usdt:
+        signal_by_ema(coin)
+    #signal_by_ema("CAKEUSDT")
     print("-------------------------------------------------")
 
 @app.route("/")
