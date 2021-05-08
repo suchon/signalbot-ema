@@ -20,44 +20,51 @@ sched = BackgroundScheduler(daemon=True)
 #+++ End Connection +++
 
 def signal_by_ema(symbols):
-    klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
-    closes = [float(i[4]) for i in klines]
-    closes = np.array(closes)
-    if len(closes) > 0:
-        ema12 = talib.EMA(closes, timeperiod=12)
-        ema26 = talib.EMA(closes, timeperiod=26)
-        #cross over/cross under
-        for index,data in enumerate(zip(ema12, ema26)):
-            e12 = data[0]
-            e26 = data[1]
-            previous_e12 = ema12[index-1]
-            previous_e26 = ema26[index-1]
-            # np.isnan(e12) == False and np.isnan(e26) == False and np.isnan(previous_e12) == False and np.isnan(previous_e26) == False:
-            if (previous_e12 < previous_e26) and (e12 > e26):
-                #cross over
-                strMessage = "Coine:{} => Signal buy:{}".format(symbols, e12)
-                #print(strMessage)
-                lineNoti.sendtext(strMessage)
-            elif (previous_e12 > previous_e26) and (e12 < e26):
-                #cross under
-                strMessage = "Coine:{} => Signal sell:{}".format(symbols, e12)
-                #print(strMessage)
-                lineNoti.sendtext(strMessage)
-            else:
-                strMessage = "Coine:{} => Not have Signal".format(symbols)
-                #print(strMessage)
-            
-            
+    try:
+        klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
+        closes = [float(i[4]) for i in klines]
+        closes = np.array(closes)
+        if len(closes) > 0:
+            ema12 = talib.EMA(closes, timeperiod=12)
+            ema26 = talib.EMA(closes, timeperiod=26)
+            #cross over/cross under
+            for index,data in enumerate(zip(ema12, ema26)):
+                e12 = data[0]
+                e26 = data[1]
+                previous_e12 = ema12[index-1]
+                previous_e26 = ema26[index-1]
+                # np.isnan(e12) == False and np.isnan(e26) == False and np.isnan(previous_e12) == False and np.isnan(previous_e26) == False:
+                if (previous_e12 < previous_e26) and (e12 > e26):
+                    #cross over
+                    strMessage = "Coine:{} => Signal buy:{}".format(symbols, e12)
+                    #print(strMessage)
+                    lineNoti.sendtext(strMessage)
+                elif (previous_e12 > previous_e26) and (e12 < e26):
+                    #cross under
+                    strMessage = "Coine:{} => Signal sell:{}".format(symbols, e12)
+                    #print(strMessage)
+                    lineNoti.sendtext(strMessage)
+                else:
+                    strMessage = "Coine:{} => Not have Signal".format(symbols)
+                    #print(strMessage)
+    except Exception as e:
+        print("Signal by ema in coin " + symbols + " has error: " + str(e))
+
 def job_scheduler():
-    sched.print_jobs()
-    #coin_list = ["BNBUSDT", "CAKEUSDT", "LINAUSDT", "ADAUSDT"]
-    info = client.get_all_tickers()
-    list_coin = [i['symbol'] for i in info]
-    list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    for coin in list_coin_usdt:
-        signal_by_ema(coin)
-    #signal_by_ema("CAKEUSDT")
-    print("-------------------------------------------------")
+    try:
+        sched.print_jobs()
+        #coin_list = ["BNBUSDT", "CAKEUSDT", "LINAUSDT", "ADAUSDT"]
+        info = client.get_all_tickers()
+        list_coin = [i['symbol'] for i in info]
+        list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
+        for coin in list_coin_usdt:
+            signal_by_ema(coin)
+        #signal_by_ema("CAKEUSDT")
+        print("-------------------------------------------------")
+    except Exception as e:
+        print("Job Scheduler error: " + str(e))
+        print("-------------------------------------------------")
+    
 
 @app.route("/")
 def hello_world():
@@ -94,18 +101,21 @@ def start_sched():
         sched.add_job(job_scheduler,'interval',minutes=30)
         sched.start()
         return "Scheduler is start"
-    except:
-      return "Scheduler Start An exception occurred"
+    except Exception as e:
+        print("Scheduler Star error: " + str(e))
+        return "Scheduler Star error: " + str(e)
    
 @app.route("/stop_sched")
 def stop_sched():
     try:
         sched.shutdown()
         return "Scheduler is stop"
-    except:
-        return "Scheduler stop An exception occurred"
+    except Exception as e:
+        print("Scheduler stop error: " + str(e))
+        return "Scheduler stop error: " + str(e)
     
 if __name__ == "__main__":
     #app.run('127.0.0.1',port=5000)
-    app.run(debug=False)
+    #app.run(debug=False)
+    app.run()
     
