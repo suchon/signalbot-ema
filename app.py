@@ -21,27 +21,30 @@ sched = BackgroundScheduler(daemon=True)
 
 def signal_by_ema(symbols):
     try:
+        #print("In Coin : " + symbols)
         klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
         closes = [float(i[4]) for i in klines]
         closes = np.array(closes)
         if len(closes) > 0:
-            ema12 = talib.EMA(closes, timeperiod=12)
-            ema26 = talib.EMA(closes, timeperiod=26)
+            #ema12 = talib.EMA(closes, timeperiod=12)
+            #ema26 = talib.EMA(closes, timeperiod=26)
+            ema1 = talib.EMA(closes, timeperiod=5)
+            ema2 = talib.EMA(closes, timeperiod=20)
             #cross over/cross under
-            for index,data in enumerate(zip(ema12, ema26)):
-                e12 = data[0]
-                e26 = data[1]
-                previous_e12 = ema12[index-1]
-                previous_e26 = ema26[index-1]
+            for index,data in enumerate(zip(ema1, ema2)):
+                e1 = data[0]
+                e2 = data[1]
+                previous_e1 = ema1[index-1]
+                previous_e2 = ema2[index-1]
                 # np.isnan(e12) == False and np.isnan(e26) == False and np.isnan(previous_e12) == False and np.isnan(previous_e26) == False:
-                if (previous_e12 < previous_e26) and (e12 > e26):
+                if (previous_e1 < previous_e2) and (e1 > e2):
                     #cross over
-                    strMessage = "Coine:{} => Signal buy:{}".format(symbols, e12)
+                    strMessage = "Coine:{} => Signal buy:{}".format(symbols, e1)
                     #print(strMessage)
                     lineNoti.sendtext(strMessage)
-                elif (previous_e12 > previous_e26) and (e12 < e26):
+                elif (previous_e1 > previous_e2) and (e1 < e2):
                     #cross under
-                    strMessage = "Coine:{} => Signal sell:{}".format(symbols, e12)
+                    strMessage = "Coine:{} => Signal sell:{}".format(symbols, e1)
                     #print(strMessage)
                     lineNoti.sendtext(strMessage)
                 else:
@@ -54,9 +57,11 @@ def job_scheduler():
     try:
         sched.print_jobs()
         #coin_list = ["BNBUSDT", "CAKEUSDT", "LINAUSDT", "ADAUSDT"]
-        info = client.get_all_tickers()
-        list_coin = [i['symbol'] for i in info]
-        list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
+        #info = client.get_all_tickers()
+        #list_coin = [i['symbol'] for i in info]
+        #list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
+        products = client.get_products()
+        list_coin_usdt = [x["s"] for x in products["data"] if x['q'] == 'USDT']
         for coin in list_coin_usdt:
             signal_by_ema(coin)
         #signal_by_ema("CAKEUSDT")
@@ -68,13 +73,16 @@ def job_scheduler():
 
 @app.route("/")
 def hello_world():
-    #info = client.get_all_tickers()
-    #list_coin = [i['symbol'] for i in info]
-    #list_coin_usdt = list(filter(lambda x: x.find("USDT") >= 0, list_coin))
-    #for coin in list_coin_usdt:
-    #    signal_by_ema(coin)
-    #signal_by_ema("CAKEUSDT")
     return "Hello world"
+
+@app.route("/run_check_signel")    
+def run_check_signel():
+    products = client.get_products()
+    list_coin_usdt = [x["s"] for x in products["data"] if x['q'] == 'USDT']
+    for coin in list_coin_usdt:
+        signal_by_ema(coin)
+    #signal_by_ema("ADAUSDT")
+    return "Hello world : run_check_signel"
 
 @app.route("/check_binance")
 def check_binance():
