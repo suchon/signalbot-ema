@@ -40,12 +40,12 @@ def signal_by_ema(symbols):
                 # np.isnan(e12) == False and np.isnan(e26) == False and np.isnan(previous_e12) == False and np.isnan(previous_e26) == False:
                 if (previous_e1 < previous_e2) and (e1 > e2):
                     #cross over
-                    strMessage = "Coine:{} => Signal buy:{}".format(symbols, e1)
+                    strMessage = "Coine:{} => Signal buy:{}".format(symbols, e2)
                     #print(strMessage)
                     lineNoti.sendtext(strMessage)
                 elif (previous_e1 > previous_e2) and (e1 < e2):
                     #cross under
-                    strMessage = "Coine:{} => Signal sell:{}".format(symbols, e1)
+                    strMessage = "Coine:{} => Signal sell:{}".format(symbols, e2)
                     #print(strMessage)
                     lineNoti.sendtext(strMessage)
                 else:
