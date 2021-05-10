@@ -22,14 +22,15 @@ sched = BackgroundScheduler(daemon=True)
 def signal_by_ema(symbols):
     try:
         #print("In Coin : " + symbols)
-        klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
+        #klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
+        klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE, "860 minutes ago UTC")
         closes = [float(i[4]) for i in klines]
         closes = np.array(closes)
         if len(closes) > 0:
             #ema12 = talib.EMA(closes, timeperiod=12)
             #ema26 = talib.EMA(closes, timeperiod=26)
-            ema1 = talib.EMA(closes, timeperiod=5)
-            ema2 = talib.EMA(closes, timeperiod=20)
+            ema1 = talib.EMA(closes, timeperiod=12)
+            ema2 = talib.EMA(closes, timeperiod=26)
             #cross over/cross under
             for index,data in enumerate(zip(ema1, ema2)):
                 e1 = data[0]
@@ -77,8 +78,9 @@ def hello_world():
 
 @app.route("/run_check_signel")    
 def run_check_signel():
-    products = client.get_products()
-    list_coin_usdt = [x["s"] for x in products["data"] if x['q'] == 'USDT']
+    #products = client.get_products()
+    #list_coin_usdt = [x["s"] for x in products["data"] if x['q'] == 'USDT']
+    list_coin_usdt = ["BNBUSDT", "CAKEUSDT", "LINAUSDT", "ADAUSDT", "IOSTUSDT", "BTCUSDT"]
     for coin in list_coin_usdt:
         signal_by_ema(coin)
     #signal_by_ema("ADAUSDT")
