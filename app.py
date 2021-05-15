@@ -23,14 +23,15 @@ def signal_by_ema(symbols):
     try:
         #print("In Coin : " + symbols)
         #klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE , "120 minutes ago UTC")
-        klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE, "860 minutes ago UTC")
+        #klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_30MINUTE, "860 minutes ago UTC")
+        klines = client.get_historical_klines(symbols, Client.KLINE_INTERVAL_1HOUR, "250 hours ago UTC")
         closes = [float(i[4]) for i in klines]
         closes = np.array(closes)
         if len(closes) > 0:
             #ema12 = talib.EMA(closes, timeperiod=12)
             #ema26 = talib.EMA(closes, timeperiod=26)
-            ema1 = talib.EMA(closes, timeperiod=12)
-            ema2 = talib.EMA(closes, timeperiod=26)
+            ema1 = talib.EMA(closes, timeperiod=50)
+            ema2 = talib.EMA(closes, timeperiod=200)
             #cross over/cross under
             for index,data in enumerate(zip(ema1, ema2)):
                 e1 = data[0]
@@ -108,7 +109,7 @@ def check_sched():
 @app.route("/start_sched")    
 def start_sched():
     try:
-        sched.add_job(job_scheduler,'interval',minutes=30)
+        sched.add_job(job_scheduler,'interval',minutes=60)
         sched.start()
         return "Scheduler is start"
     except Exception as e:
@@ -125,6 +126,8 @@ def stop_sched():
         return "Scheduler stop error: " + str(e)
     
 if __name__ == "__main__":
+    sched.add_job(job_scheduler,'interval',minutes=60)
+    sched.start()
     #app.run('127.0.0.1',port=5000)
     #app.run(debug=False)
     app.run()
